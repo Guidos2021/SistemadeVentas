@@ -355,3 +355,87 @@ select p.IdProducto,p.Codigo,p.Nombre,p.Descripcion,c.IdCategoria,c.Descripcion[
 inner join CATEGORIA c on c.IdCategoria = p.IdCategoria
 
 delete PRODUCTO where IdProducto = 6
+
+/*---------- PROCEDIMIENTOS PARA CLIENTES */
+
+--Procedimiento para agregar Cliente
+create proc Sp_RegistrarCliente(
+@Documento varchar(50),
+@NombreCompleto varchar(50),
+@Correo varchar(50),
+@Telefono varchar(50),
+@Estado bit,
+@Resultado int output,
+@Mensaje varchar(500) output
+)as
+begin
+	set @Resultado = 0
+	declare @IDPERSONA int
+	if not exists(select * from CLIENTE where Documento = @Documento)
+	begin
+		insert into CLIENTE(Documento,NombreCompleto,Correo,Telefono,Estado)
+		values(@Documento,@NombreCompleto,@Correo,@Telefono,@Estado)
+
+		set @Resultado = SCOPE_IDENTITY()
+	end
+	else
+		set @Mensaje = 'El numero de documento ya esta Registrado..!'
+end
+
+Go
+
+--Procedimiento para Modificar Cliente
+alter proc Sp_ModificarCliente(
+@IdCliente int,
+@Documento varchar(50),
+@NombreCompleto varchar(50),
+@Correo varchar(50),
+@Telefono varchar(50),
+@Estado bit,
+@Resultado int output,
+@Mensaje varchar(500) output
+)as
+begin
+	set @Resultado = 1
+	declare @IDPERSONA int
+	if not exists(select * from CLIENTE where Documento = @Documento and IdCliente != @IdCliente)
+	begin
+		update CLIENTE set 
+		Documento = @Documento,
+		NombreCompleto = @NombreCompleto,
+		Correo = @Correo,
+		Telefono = @Telefono,
+		Estado = @Estado
+		where IdCliente = @IdCliente
+
+	end
+	else
+		set @Resultado = 0
+		set @Mensaje = 'El numero de documento ya esta Registrado..!'
+end
+Go
+
+--Procedimiento para Eliminar Cliente
+alter proc SP_EliminarCliente(
+@IdCLiente int,
+@Resultado int output,
+@Mensaje varchar(500) output
+)
+as
+begin
+	set @Resultado = 1
+	if(@Resultado =1)
+		begin 
+			delete top(1) from CLIENTE where IdCliente = @IdCLiente
+		end
+	else
+	begin
+		set @Resultado = 0
+		set @Mensaje = 'No se pudo eliminar el Cliente.'
+	end
+end
+
+
+select IdCliente,Documento,NombreCompleto,Correo,Telefono,Estado from CLIENTE
+
+select * from CLIENTE
